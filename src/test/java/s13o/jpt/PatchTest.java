@@ -3,10 +3,9 @@ package s13o.jpt;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.github.fge.jsonschema.core.report.ProcessingReport;
-import com.github.fge.jsonschema.main.JsonSchema;
-import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import com.networknt.schema.JsonSchema;
+import com.networknt.schema.JsonSchemaFactory;
+import com.networknt.schema.ValidationMessage;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,6 +17,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {Conf.class})
@@ -91,12 +91,12 @@ public class PatchTest {
     }
 
     private void testSchema(String patch, JsonNode schemaNode)
-            throws IOException, ProcessingException {
+            throws Exception {
         JsonNode pathNode = mapper.readTree(patch);
-        final JsonSchema schema = factory.getJsonSchema(schemaNode);
-        ProcessingReport report = schema.validate(pathNode);
+        final JsonSchema schema = factory.getSchema(schemaNode);
+        Set<ValidationMessage> report = schema.validate(pathNode);
         // see https://www.jsonschemavalidator.net/
-        Assert.assertTrue(report.isSuccess());
+        Assert.assertTrue(report.isEmpty());
     }
 
 

@@ -86,9 +86,9 @@
             </dependency>
 
             <dependency>
-                <groupId>com.github.java-json-tools</groupId>
+                <groupId>com.networknt</groupId>
                 <artifactId>json-schema-validator</artifactId>
-                <version>2.2.8</version>
+                <version>0.1.19</version>
             </dependency>
 
             <!-- Test Dependencies -->
@@ -132,7 +132,7 @@
             <artifactId>vavr</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.java-json-tools</groupId>
+            <groupId>com.networknt</groupId>
             <artifactId>json-schema-validator</artifactId>
         </dependency>
     </dependencies>
