@@ -84,7 +84,7 @@ public class PatchTest {
         testSchema(JSON_PATCH, getTestVersionedSchema());
     }
 
-    @Test//(expected = RuntimeException.class)
+    @Test(expected = AssertionError.class)
     public void wrongTestVersionedSchema()
             throws Exception {
         testSchema(WRONG_VERSION_JSON_PATCH, getTestVersionedSchema());

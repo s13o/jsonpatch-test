@@ -1,6 +1,5 @@
 {
   "title": "JSON schema for JSONPatch files",
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "array",
   "minItems": 2,
   "items": {
@@ -41,8 +40,7 @@
               "type": "string",
               "enum": [
                 "add",
-                "replace",
-                "test"
+                "replace"
               ]
             },
             "value": {
