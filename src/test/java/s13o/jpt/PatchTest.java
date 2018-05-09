@@ -3,6 +3,7 @@ package s13o.jpt;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonschema.core.exceptions.ProcessingException;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
@@ -21,6 +22,15 @@ import java.nio.charset.StandardCharsets;
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {Conf.class})
 public class PatchTest {
+
+    private static final String JSON_PATCH = "[ " +
+            "{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"lastname\" }, " +
+            "{ \"op\": \"test\", \"path\": \"/version\", \"value\": 1 } " +
+            "]";
+    private static final String WRONG_VERSION_JSON_PATCH = "[ " +
+            "{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"lastname\" }, " +
+            "{ \"op\": \"test\", \"path\": \"/verssion\", \"value\": 1 } " +
+            "]";
 
     @Autowired
     private PatchService service;
@@ -47,10 +57,7 @@ public class PatchTest {
             throws Exception {
         Order order = new Order().setId(1).setName("name").setVersion(1);
 
-        JsonPatch patch = patch("[ " +
-                "{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"lastname\" }, " +
-                "{ \"op\": \"test\", \"path\": \"/version\", \"value\": 1 } " +
-                "]");
+        JsonPatch patch = patch(JSON_PATCH);
         Order patched = service.applyPatch(order, patch);
 
         Assert.assertEquals("lastname", patched.getName());
@@ -61,51 +68,51 @@ public class PatchTest {
             throws Exception {
         Order order = new Order().setId(1).setName("name").setVersion(2);
 
-        JsonPatch patch = patch("[ " +
-                "{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"lastname\" }, " +
-                "{ \"op\": \"test\", \"path\": \"/version\", \"value\": 1 } " +
-                "]");
+        JsonPatch patch = patch(JSON_PATCH);
         Order patched = service.applyPatch(order, patch);
-
-        //Assert.assertEquals("lastname", patched.getName());
     }
 
     @Test
-    public void checkVersionRequired()
+    public void checkTestSchema()
             throws Exception {
-        Order order = new Order().setId(1).setName("name").setVersion(2);
+        testSchema(JSON_PATCH, getTestSchema());
+    }
 
-        JsonNode pathNode = mapper.readTree("[ " +
-                "{ \"op\": \"replace\", \"path\": \"/name\", \"value\": \"lastname\" }, " +
-                "{ \"op\": \"test\", \"path\": \"/version\", \"value\": 1 } " +
-                "]");
+    @Test
+    public void checkTestVersionedSchema()
+            throws Exception {
+        testSchema(JSON_PATCH, getTestVersionedSchema());
+    }
 
+    @Test//(expected = RuntimeException.class)
+    public void wrongTestVersionedSchema()
+            throws Exception {
+        testSchema(WRONG_VERSION_JSON_PATCH, getTestVersionedSchema());
+    }
 
-        final JsonSchema schema = factory.getJsonSchema(getTestSchema());
-
+    private void testSchema(String patch, JsonNode schemaNode)
+            throws IOException, ProcessingException {
+        JsonNode pathNode = mapper.readTree(patch);
+        final JsonSchema schema = factory.getJsonSchema(schemaNode);
         ProcessingReport report = schema.validate(pathNode);
-
         // see https://www.jsonschemavalidator.net/
-
         Assert.assertTrue(report.isSuccess());
-
-
-      //  JsonPatch patch = JsonPatch.fromJson(pathNode);
-
-
-        //Order patched = service.applyPatch(order, patch);
-
-        //Assert.assertEquals("lastname", patched.getName());
     }
 
 
+    private JsonNode getTestVersionedSchema()
+            throws IOException {
+        try (InputStream exampleInput = getClass().getClassLoader()
+                .getResourceAsStream("s13o/jpt/test-versioned-schema.json")) {
+            return mapper.readTree(exampleInput);
+        }
+    }
+
     private JsonNode getTestSchema()
             throws IOException {
-        try (InputStream exampleInput =
-                     PatchTest.class.getClassLoader()
-                             .getResourceAsStream("s13o/jpt/test-schema.json")) {
+        try (InputStream exampleInput = getClass().getClassLoader()
+                .getResourceAsStream("s13o/jpt/test-schema.json")) {
             return mapper.readTree(exampleInput);
-
         }
     }
 
@@ -115,6 +122,5 @@ public class PatchTest {
             return mapper.readValue(in, JsonPatch.class);
         }
     }
-
 
 }

@@ -1,11 +1,24 @@
 {
   "title": "JSON schema for JSONPatch files",
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-07/schema#",
   "type": "array",
+  "minItems": 2,
   "items": {
     "$ref": "#/definitions/operation"
   },
+  "contains" : {
+    "description" : "http://json-schema.org/latest/json-schema-validation.html#rfc.section.6.4.6",
+    "$ref": "#/definitions/version"
+  },
   "definitions": {
+    "path": {
+      "properties": {
+        "path": {
+          "description": "A JSON Pointer path.",
+          "type": "string"
+        }
+      }
+    },
     "operation": {
       "type": "object",
       "required": [
@@ -69,11 +82,27 @@
         }
       ]
     },
-    "path": {
+    "version": {
+      "type": "object",
+      "required": [
+        "op",
+        "path",
+        "value"
+      ],
       "properties": {
+        "op": {
+          "description": "The test operation to perform.",
+          "type": "string",
+          "const": "test"
+        },
         "path": {
-          "description": "A JSON Pointer path.",
-          "type": "string"
+          "description": "The path to version field",
+          "type": "string",
+          "const": "/version"
+        },
+        "value": {
+          "description": "The value of version attribute to be tested.",
+          "type": "integer"
         }
       }
     }
